@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 
 class Hotel(models.Model):
     name = models.CharField(max_length=100, blank=True)
-    created_at = models.DateTimeField(auto_now_add=False)
+    created_at = models.DateTimeField(auto_now_add=True)
     location = models.CharField(max_length=100, blank=False)
     available = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.id} {self.name}'
 
 
 class Room(models.Model):
@@ -19,13 +19,17 @@ class Room(models.Model):
     room_number = models.IntegerField(blank=False)
     room_type = models.CharField(max_length=100, blank=False)
     location = models.CharField(max_length=100, blank=False)
-    available = models.BooleanField(default=True, blank=False)
+    capacity = models.IntegerField(blank=False, default=1)
+    available = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.hotel.name}  Habitación numero {self.room_number}"
+        return str(self.room_number)
 
-class Passenger(User):
-    Birthdate = models.DateField(blank=False)
+class Passenger(models.Model):
+    first_name = models.CharField(max_length=100, blank=False)
+    last_name = models.CharField(max_length=100, blank=False)
+    email = models.EmailField(unique=True)
+    birth_date = models.DateField(blank=False)
     GENDER_CHOICES = (
         ('M', 'Male'),
         ('F', 'Female'),
@@ -38,9 +42,9 @@ class Passenger(User):
         ('TI', 'Tarjeta de identidad'),
         ('PA', 'Pasaporte'),
     )
-    Document_type = models.CharField(max_length=100, choices=DOCUMENT_CHOICES, blank=False)
-    Document_number = models.CharField(unique=False, max_length=100, blank=False)
-    Phone_number = models.IntegerField(blank=False)
+    document_type = models.CharField(max_length=100, choices=DOCUMENT_CHOICES, blank=False)
+    document_number = models.CharField(unique=False, max_length=100, blank=False)
+    phone_number = models.IntegerField(blank=False)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -62,6 +66,7 @@ class Booking(models.Model):
     check_in = models.DateTimeField()
     check_out = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    number_of_people = models.IntegerField(blank=False, default=1) 
 
     def __str__(self):
         return f"{self.passenger} - {self.hotel} - {self.room}"
