@@ -1,17 +1,69 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .models import Hotel, Room, Passenger, EmerygencyContact, Booking
-from .serializers import HotelSerializer, RoomSerializer, PassengerSerializer, EmerygencyContactSerializer, BookingSerializer
+from .models import Hotel, Room, Passenger, EmerygencyContact, Booking, Location
+from .serializers import HotelSerializer, RoomSerializer, PassengerSerializer, EmerygencyContactSerializer, BookingSerializer, LocationSerializer
 from django.core.mail import send_mail
+from django.shortcuts import render
+from django.views.generic import TemplateView
 
+
+class LocationViewSet(viewsets.ModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
+
+    def list(self, request):
+        queryset = Location.objects.all()
+        serializer = LocationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = LocationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+    def update(self, request, pk):
+        location = Location.objects.get(pk=pk)
+        serializer = LocationSerializer(location, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+
+    def destroy(self, request, pk):
+        location = Location.objects.get(pk=pk)
+        location.delete()
+        return Response("Location deleted successfully")
 
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
 
     def list(self, request):
-        queryset = Hotel.objects.all()
-        serializer = HotelSerializer(queryset, many=True)
+        hotel_queryset = Hotel.objects.all()
+        booking_queryset = Booking.objects.all()
+        room_queryset = Room.objects.all()
+        if 'location' in request.query_params:
+            hotel_queryset = hotel_queryset.filter(
+                location=request.query_params['location'])
+        if 'check_in' in request.query_params:
+            check_in_queryset = booking_queryset.filter(
+                check_in__lte=request.query_params['check_in'])
+            if not check_in_queryset:
+                return Response("No hotels available in this date")
+        if 'check_out' in request.query_params:
+            check_out_queryset = booking_queryset.filter(
+                check_out__lte=request.query_params['check_out'])
+            if not check_out_queryset:
+                return Response("No hotels available in this date")
+        if 'capacity' in request.query_params:
+            room_queryset = room_queryset.filter(
+                capacity=request.query_params['capacity'])
+            if not room_queryset:
+                return Response("No hotels available with this capacity")
+        hotel_queryset = hotel_queryset.filter(available=True)
+        serializer = HotelSerializer(hotel_queryset, many=True)
         return Response(serializer.data)
 
     def create(self, request):
@@ -170,3 +222,13 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking = Booking.objects.get(pk=pk)
         booking.delete()
         return Response("Booking deleted successfully")
+
+class IndexView(TemplateView):
+    template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['locations'] = ['Medellín', 'Bogota']
+
+        return context
+

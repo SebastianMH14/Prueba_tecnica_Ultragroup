@@ -1,5 +1,23 @@
 from rest_framework import serializers
-from hotel_booking.models import Hotel, Room, Passenger, EmerygencyContact, Booking
+from hotel_booking.models import Hotel, Room, Passenger, EmerygencyContact, Booking, Location
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return Location.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+        return instance
+
+    def delete(self, instance):
+        instance.delete()
+        return instance
 
 
 class HotelSerializer(serializers.ModelSerializer):

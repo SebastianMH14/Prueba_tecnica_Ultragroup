@@ -1,10 +1,13 @@
 from rest_framework import routers
-from .views import HotelViewSet, RoomViewSet, PassengerViewSet, EmerygencyContactViewSet, BookingViewSet
+from .views import HotelViewSet, RoomViewSet, PassengerViewSet, EmerygencyContactViewSet, BookingViewSet, LocationViewSet, IndexView
+from django.urls import path
 
 router = routers.SimpleRouter()
+router.register(r'locations', LocationViewSet)
 router.register(r'hotels', HotelViewSet)
 router.register(r'rooms', RoomViewSet)
 router.register(r'passengers', PassengerViewSet)
 router.register(r'emergency_contacts', EmerygencyContactViewSet)
 router.register(r'bookings', BookingViewSet)
 urlpatterns = router.urls
+urlpatterns.append(path('', IndexView.as_view(), name='index'))
