@@ -1,4 +1,0 @@
-Django
-djangorestframework
-python-decouple
-django-cors-headers
