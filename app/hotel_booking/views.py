@@ -5,6 +5,7 @@ from .serializers import HotelSerializer, RoomSerializer, PassengerSerializer, E
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from datetime import datetime, timedelta
 
 
 class LocationViewSet(viewsets.ModelViewSet):
@@ -36,34 +37,39 @@ class LocationViewSet(viewsets.ModelViewSet):
         location.delete()
         return Response("Location deleted successfully")
 
+
 class HotelViewSet(viewsets.ModelViewSet):
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
 
     def list(self, request):
-        hotel_queryset = Hotel.objects.all()
-        booking_queryset = Booking.objects.all()
-        room_queryset = Room.objects.all()
-        if 'location' in request.query_params:
-            hotel_queryset = hotel_queryset.filter(
-                location=request.query_params['location'])
-        if 'check_in' in request.query_params:
-            check_in_queryset = booking_queryset.filter(
-                check_in__lte=request.query_params['check_in'])
-            if not check_in_queryset:
-                return Response("No hotels available in this date")
-        if 'check_out' in request.query_params:
-            check_out_queryset = booking_queryset.filter(
-                check_out__lte=request.query_params['check_out'])
-            if not check_out_queryset:
-                return Response("No hotels available in this date")
-        if 'capacity' in request.query_params:
-            room_queryset = room_queryset.filter(
-                capacity=request.query_params['capacity'])
-            if not room_queryset:
-                return Response("No hotels available with this capacity")
-        hotel_queryset = hotel_queryset.filter(available=True)
-        serializer = HotelSerializer(hotel_queryset, many=True)
+        check_in = request.query_params.get('check_in')
+        check_out = request.query_params.get('check_out')
+        location = request.query_params.get('location')
+        capacity = request.query_params.get('capacity', 1)
+
+        print(check_in, check_out, location, capacity)
+
+        if check_in and check_out and location:
+            check_in = datetime.strptime(check_in, '%Y-%m-%d')
+            check_out = datetime.strptime(check_out, '%Y-%m-%d')
+
+            available_rooms = Room.objects.filter(
+                hotel__location__name=location,
+                available=True,
+                capacity__gte=capacity,
+                booking__check_in__gt=check_out,
+                booking__check_out__lt=check_in,
+            ).distinct()
+
+            available_hotels = [room.hotel for room in available_rooms]
+
+            serialized_hotels = HotelSerializer(
+                available_hotels, many=True).data
+            return Response(serialized_hotels)
+        else:
+            queryset = Hotel.objects.all()
+            serializer = HotelSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def create(self, request):
@@ -129,7 +135,17 @@ class PassengerViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = PassengerSerializer(data=request.data)
         if serializer.is_valid():
+            booking = Booking.objects.get(pk=request.data['booking'])
             serializer.save()
+            print(booking)
+            try:
+                send_mail(
+                    'Booking Confirmation',
+                    f'Your booking has been confirmed! in hotel {booking}',
+                    'sebasmh2002@hotmail.com',
+                    [request.data['email']])
+            except:
+                return Response("Booking created successfully, but email not sent")
             return Response(serializer.data)
         return Response(serializer.errors)
 
@@ -190,23 +206,12 @@ class BookingViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = BookingSerializer(data=request.data)
         if serializer.is_valid():
-            passenger = Passenger.objects.get(pk=request.data['passenger'])
-            hotel = Hotel.objects.get(pk=request.data['hotel'])
             room = Room.objects.get(pk=request.data['room'])
-
             booking = Booking.objects.filter(
                 room=room, check_in__lte=request.data['check_in'], check_out__gte=request.data['check_out'])
             if booking.exists():
                 return Response("The room is not available on these dates")
             serializer.save()
-            try:
-                send_mail(
-                    'Booking Confirmation',
-                    f'Your booking has been confirmed! in hotel {hotel.name} in room {room}',
-                    'sebasmh2002@hotmail.com',
-                    [passenger.email])
-            except:
-                return Response("Booking created successfully, but email not sent")
             return Response(serializer.data)
         return Response(serializer.errors)
 
@@ -222,13 +227,3 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking = Booking.objects.get(pk=pk)
         booking.delete()
         return Response("Booking deleted successfully")
-
-class IndexView(TemplateView):
-    template_name = 'index.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['locations'] = ['Medellín', 'Bogota']
-
-        return context
-

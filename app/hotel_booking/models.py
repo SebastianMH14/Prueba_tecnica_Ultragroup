@@ -16,7 +16,7 @@ class Hotel(models.Model):
     available = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.id} {self.name}'
+        return f'{self.name}'
 
 
 class Room(models.Model):
@@ -47,7 +47,7 @@ class Booking(models.Model):
     number_of_people = models.IntegerField(blank=False, default=1)
 
     def __str__(self):
-        return f"{self.passenger} - {self.hotel} - {self.room}"
+        return f"{self.hotel} in room {self.room} from {self.check_in} to {self.check_out}"
 
 
 class Passenger(models.Model):

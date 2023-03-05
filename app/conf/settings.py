@@ -34,6 +34,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'shevyh2002@gmail.com'
 EMAIL_HOST_PASSWORD = 'sfoyvqwgfrscovez'
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 
 # Application definition
 
