@@ -188,6 +188,8 @@ Necesitas tener instalado Python
 2 - Creo que la forma en la que se envia el email no es la que se debería usar en producción, ya que no se envia de forma asincrona, y puede cargar mucho el backend, considero que se debe hacer por medio de un service worker, o un sistema de colas, al ser esto una prueba no lo implemente, aun asi, el email se envia correctamente y al ser un sistema de prueba no hay ningun problema con eso.
 #
 3 - Use sqlite para la base de datos, ya que es una base de datos que viene por defecto con django, y no es necesario instalar nada para usarla, pero si se desea usar otra base de datos, solo se debe cambiar el archivo settings.py, y cambiar la configuración de la base de datos. Esto con el fin de facilitar la instalación y configuración del proyecto, y que pueda ser probado en cualquier computador.
+#
+4 - La forma en que se manejan las ubicaciones es demasiado basica, en un caso real se deberían tener 3 tablas en nuesta base de datos, 1 para país, 1 para ciudad, y 1 para ubicación, lo hice por temas de practicidad, y para que el proyecto sea mas facil de entender.
 
 ## Desarrollado con:
 
