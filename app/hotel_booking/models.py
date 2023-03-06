@@ -73,7 +73,7 @@ class Passenger(models.Model):
         max_length=100, choices=DOCUMENT_CHOICES, blank=False)
     document_number = models.CharField(
         unique=False, max_length=100, blank=False)
-    phone_number = models.IntegerField(blank=False)
+    phone_number = models.BigIntegerField(blank=False)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
