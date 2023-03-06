@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-+yrgodmjqbubjh716cm$@+w-o%xs&vj1#lda1lq%fpm*u63e1!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -138,7 +138,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'hotel_booking/static/'),
 )
-STATIC_URL = 'https://pruebatecnicaultragroup-production.up.railway.app/static/'
+STATIC_URL = '/static/'
 
 
 # Default primary key field type
