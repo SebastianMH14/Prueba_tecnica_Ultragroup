@@ -15,8 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from conf import settings
+from django.views.static import serve as serve_static
+from django.urls import re_path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('hotel_booking.urls')),
 ]
+if not settings.DEBUG:
+    urlpatterns += [re_path(r'^static/(?P<path>.*)$', serve_static)]
