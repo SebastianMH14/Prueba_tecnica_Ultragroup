@@ -48,8 +48,7 @@ class HotelViewSet(viewsets.ModelViewSet):
         location = request.query_params.get('location')
         capacity = request.query_params.get('capacity', 1)
 
-        print(check_in, check_out, location, capacity)
-
+        """Logica para filtrar hoteles disponibles segun fecha de entrada, salida, ubicacion, capacidad"""
         if check_in and check_out and location:
             check_in = datetime.strptime(check_in, '%Y-%m-%d')
             check_out = datetime.strptime(check_out, '%Y-%m-%d')
@@ -137,7 +136,7 @@ class PassengerViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             booking = Booking.objects.get(pk=request.data['booking'])
             serializer.save()
-            print(booking)
+            """Logica para envio de email de confirmacion de reserva cuando es creada y asociada a un pasajero"""
             try:
                 send_mail(
                     'Booking Confirmation',
@@ -207,6 +206,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer = BookingSerializer(data=request.data)
         if serializer.is_valid():
             room = Room.objects.get(pk=request.data['room'])
+            """Logica para verificar que la habitacion no este ocupada en las fechas de la reserva"""
             booking = Booking.objects.filter(
                 room=room, check_in__lte=request.data['check_in'], check_out__gte=request.data['check_out'])
             if booking.exists():
